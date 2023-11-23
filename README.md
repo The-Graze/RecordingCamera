@@ -19,3 +19,5 @@ to toggle locking the freecams rotation to the main cameras
 
 "Shoulder" Mode
 P to toggle the perspecive to behind or infront
+
+https://youtu.be/_qg2GPdUD2k
