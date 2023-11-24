@@ -1,10 +1,13 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using GameNetcodeStuff;
+using HarmonyLib;
 using System;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 namespace RecordingCamera
 {
@@ -19,6 +22,7 @@ namespace RecordingCamera
                 CamMan = new GameObject("CameraMan");
                 CamMan.AddComponent<CameraScript>();
                 DontDestroyOnLoad(CamMan);
+                Destroy(this);
             }
         }
         void OnDestroy()
@@ -81,80 +85,91 @@ namespace RecordingCamera
 
         void Update()
         {
-            if (cam == null)
+            try
             {
-                cam = new GameObject("ThridPersonCam").AddComponent<Camera>();
-                HemlRend = GameObject.Find("Systems/Rendering/PlayerHUDHelmetModel/ScavengerHelmet").GetComponent<Renderer>();
-            }
-            else
-            {
-                cam.enabled = ThirdP;
-                HemlRend.forceRenderingOff = ThirdP;
-                if (Arms != null) { Arms.SetActive(!ThirdP); }
-                if (me == null)
+                if (cam == null)
                 {
-                    foreach (PlayerControllerB playerControllerB in FindObjectsOfType<PlayerControllerB>())
+                    cam = new GameObject("ThridPersonCam").AddComponent<Camera>();
+                    HemlRend = GameObject.Find("Systems/Rendering/PlayerHUDHelmetModel/ScavengerHelmet").GetComponent<Renderer>();
+                }
+                else
+                {
+                    cam.enabled = ThirdP;
+                    HemlRend.forceRenderingOff = ThirdP;
+                    if (Arms != null) { Arms.SetActive(!ThirdP); }
+                    if (me == null)
                     {
-                        if (playerControllerB.IsOwner && playerControllerB.isPlayerControlled)
+                        foreach (PlayerControllerB playerControllerB in FindObjectsOfType<PlayerControllerB>())
                         {
-                            me = playerControllerB;
-                            MainCam = me.cameraContainerTransform.GetChild(0).GetComponent<Camera>();
-                            cam.cullingMask = MainCam.cullingMask;
-                            targetPosition = MainCam.transform.position;
-                            Arms = me.cameraContainerTransform.parent.GetChild(1).gameObject;
+                            if (playerControllerB.IsOwner && playerControllerB.isPlayerControlled)
+                            {
+                                me = playerControllerB;
+                                MainCam = me.cameraContainerTransform.GetChild(0).GetComponent<Camera>();
+                                cam.cullingMask = MainCam.cullingMask;
+                                targetPosition = MainCam.transform.position;
+                                Arms = me.cameraContainerTransform.parent.GetChild(1).gameObject;
+                            }
+                        }
+                    }
+                    else if (!me.inTerminalMenu || !me.isTypingChat)
+                    {
+                        if (me.isPlayerDead)
+                        {
+                            ThirdP = false;
+                        }
+                        if (Keyboard.current.endKey.wasPressedThisFrame)
+                        {
+                            ThirdP = !ThirdP;
+                            if (ThirdP)
+                            {
+                                me.meshContainer.GetComponent<LODGroup>().ForceLOD(1);
+                            }
+                            else
+                            {
+                                me.meshContainer.GetComponent<LODGroup>().enabled = false;
+                                me.meshContainer.GetComponent<LODGroup>().enabled = true;
+                            }
+                        }
+                        if (Keyboard.current.cKey.wasPressedThisFrame)
+                        {
+                            Dropped = !Dropped;
+                            SwitchCamState();
+                        }
+                        if (Dropped)
+                        {
+                            #region movekeys 
+                            if (Keyboard.current.uKey.wasPressedThisFrame) { targetPosition += cam.transform.forward * MoveSpeed; }
+                            if (Keyboard.current.jKey.wasPressedThisFrame) { targetPosition -= cam.transform.forward * MoveSpeed; }
+                            if (Keyboard.current.kKey.wasPressedThisFrame) { targetPosition += cam.transform.right * MoveSpeed; }
+                            if (Keyboard.current.hKey.wasPressedThisFrame) { targetPosition -= cam.transform.right * MoveSpeed; }
+                            if (Keyboard.current.iKey.wasPressedThisFrame) { targetPosition += cam.transform.up * MoveSpeed; }
+                            if (Keyboard.current.yKey.wasPressedThisFrame) { targetPosition -= cam.transform.up * MoveSpeed; }
+                            #endregion
+                            if (CopyRottation)
+                            {
+                                cam.transform.rotation = MainCam.transform.rotation;
+                            }
+                            cam.transform.position = Vector3.Lerp(cam.transform.position, targetPosition, lerpingSpeed * Time.deltaTime);
+                        }
+                        if (Keyboard.current.pKey.wasPressedThisFrame)
+                        {
+                            if (Dropped)
+                            {
+                                CopyRottation = !CopyRottation;
+                                SwitchCamState();
+                            }
+                            else
+                            {
+                                Behind = !Behind;
+                                SwitchCamState();
+                            }
                         }
                     }
                 }
-                else if (!me.inTerminalMenu || !me.isTypingChat)
-                {
-                    if (Keyboard.current.endKey.wasPressedThisFrame)
-                    {
-                        ThirdP = !ThirdP;
-                        if (ThirdP)
-                        {
-                            me.meshContainer.GetComponent<LODGroup>().ForceLOD(1);
-                        }
-                        else
-                        {
-                            me.meshContainer.GetComponent<LODGroup>().enabled = false;
-                            me.meshContainer.GetComponent<LODGroup>().enabled = true;
-                        }
-                    }
-                    if (Keyboard.current.cKey.wasPressedThisFrame)
-                    {
-                        Dropped = !Dropped;
-                        SwitchCamState();
-                    }
-                    if (Dropped)
-                    {
-                        #region movekeys 
-                        if (Keyboard.current.uKey.wasPressedThisFrame) { targetPosition += cam.transform.forward * MoveSpeed; }
-                        if (Keyboard.current.jKey.wasPressedThisFrame) { targetPosition -= cam.transform.forward * MoveSpeed; }
-                        if (Keyboard.current.kKey.wasPressedThisFrame) { targetPosition += cam.transform.right * MoveSpeed; }
-                        if (Keyboard.current.hKey.wasPressedThisFrame) { targetPosition -= cam.transform.right * MoveSpeed; }
-                        if (Keyboard.current.iKey.wasPressedThisFrame) { targetPosition += cam.transform.up * MoveSpeed; }
-                        if (Keyboard.current.yKey.wasPressedThisFrame) { targetPosition -= cam.transform.up * MoveSpeed; }
-                        #endregion 
-                        if (CopyRottation)
-                        { 
-                            cam.transform.rotation = MainCam.transform.rotation;
-                        }
-                        cam.transform.position = Vector3.Lerp(cam.transform.position, targetPosition, lerpingSpeed * Time.deltaTime);
-                    }
-                    if (Keyboard.current.pKey.wasPressedThisFrame)
-                    {
-                        if (Dropped)
-                        {
-                            CopyRottation = !CopyRottation;
-                            SwitchCamState();
-                        }
-                        else
-                        {
-                            Behind = !Behind;
-                            SwitchCamState();
-                        }
-                    }
-                } 
+            }
+            catch
+            {
+                //Stopping errors untill player exists
             }
         }
 
