@@ -7,6 +7,6 @@
     {
         public const string GUID = "com.graze.gorillatag.placeablecamera";
         public const string Name = "RecordingCamera";
-        public const string Version = "1.0.0";
+        public const string Version = "1.2.0";
     }
 }

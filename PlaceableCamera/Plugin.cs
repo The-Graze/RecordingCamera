@@ -46,13 +46,17 @@ namespace RecordingCamera
 
         GameObject Arms;
 
+        LODGroup lodg;
+
         bool ThirdP;
 
         bool Dropped = true;
-
+            
         bool Behind;
 
         bool CopyRottation;
+
+        bool hide;
 
         public float MoveSpeed = 1;
 
@@ -104,10 +108,11 @@ namespace RecordingCamera
                             if (playerControllerB.IsOwner && playerControllerB.isPlayerControlled)
                             {
                                 me = playerControllerB;
-                                MainCam = me.cameraContainerTransform.GetChild(0).GetComponent<Camera>();
+                                MainCam = me.gameplayCamera;
                                 cam.cullingMask = MainCam.cullingMask;
                                 targetPosition = MainCam.transform.position;
                                 Arms = me.cameraContainerTransform.parent.GetChild(1).gameObject;
+                                lodg = lodg;
                             }
                         }
                     }
@@ -116,18 +121,19 @@ namespace RecordingCamera
                         if (me.isPlayerDead)
                         {
                             ThirdP = false;
+                            hide = false;
                         }
                         if (Keyboard.current.endKey.wasPressedThisFrame)
                         {
                             ThirdP = !ThirdP;
                             if (ThirdP)
                             {
-                                me.meshContainer.GetComponent<LODGroup>().ForceLOD(1);
+                                lodg.ForceLOD(1);
                             }
                             else
                             {
-                                me.meshContainer.GetComponent<LODGroup>().enabled = false;
-                                me.meshContainer.GetComponent<LODGroup>().enabled = true;
+                                lodg.enabled = false;
+                                lodg.enabled = true;
                             }
                         }
                         if (Keyboard.current.cKey.wasPressedThisFrame)
@@ -145,10 +151,6 @@ namespace RecordingCamera
                             if (Keyboard.current.iKey.wasPressedThisFrame) { targetPosition += cam.transform.up * MoveSpeed; }
                             if (Keyboard.current.yKey.wasPressedThisFrame) { targetPosition -= cam.transform.up * MoveSpeed; }
                             #endregion
-                            if (CopyRottation)
-                            {
-                                cam.transform.rotation = MainCam.transform.rotation;
-                            }
                             cam.transform.position = Vector3.Lerp(cam.transform.position, targetPosition, lerpingSpeed * Time.deltaTime);
                         }
                         if (Keyboard.current.pKey.wasPressedThisFrame)
@@ -164,12 +166,28 @@ namespace RecordingCamera
                                 SwitchCamState();
                             }
                         }
+                        if (Keyboard.current.homeKey.wasPressedThisFrame)
+                        {
+                            hide = !hide;
+                            me.playerHudUIContainer.GetComponent<RectTransform>().localPosition = Hide();
+                        }
                     }
                 }
             }
             catch
             {
                 //Stopping errors untill player exists
+            }
+        }
+        Vector3 Hide()
+        {
+            if (hide)
+            {
+                return new Vector3 (0, 5555, 0);
+            }
+            else
+            {
+                return Vector3.zero;
             }
         }
 
