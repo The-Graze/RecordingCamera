@@ -46,7 +46,7 @@ namespace RecordingCamera
 
         GameObject Arms;
 
-        LODGroup lodg;
+       LODGroup lodg;
 
         bool ThirdP;
 
@@ -112,7 +112,7 @@ namespace RecordingCamera
                                 cam.cullingMask = MainCam.cullingMask;
                                 targetPosition = MainCam.transform.position;
                                 Arms = me.cameraContainerTransform.parent.GetChild(1).gameObject;
-                                lodg = lodg;
+                                lodg = me.transform.GetChild(0).GetComponent<LODGroup>();
                             }
                         }
                     }
@@ -152,6 +152,10 @@ namespace RecordingCamera
                             if (Keyboard.current.yKey.wasPressedThisFrame) { targetPosition -= cam.transform.up * MoveSpeed; }
                             #endregion
                             cam.transform.position = Vector3.Lerp(cam.transform.position, targetPosition, lerpingSpeed * Time.deltaTime);
+                            if (CopyRottation)
+                            {
+                                cam.transform.rotation = MainCam.transform.rotation;
+                            }
                         }
                         if (Keyboard.current.pKey.wasPressedThisFrame)
                         {
@@ -200,7 +204,6 @@ namespace RecordingCamera
             }
             else
             {
-                CopyRottation = true;
                 cam.transform.SetParent(MainCam.transform, false);
                 cam.transform.localRotation = rotPerspective();
                 cam.transform.localPosition = Perspective();
