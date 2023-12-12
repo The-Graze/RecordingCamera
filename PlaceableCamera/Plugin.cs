@@ -58,9 +58,9 @@ namespace RecordingCamera
 
         bool hide;
 
-        public float MoveSpeed = 1;
+        public float MoveSpeed = 0.22f;
 
-        public float lerpingSpeed = 2f; 
+        public float lerpingSpeed = 3f; 
 
         Vector3 targetPosition;
 
@@ -144,12 +144,12 @@ namespace RecordingCamera
                         if (Dropped)
                         {
                             #region movekeys 
-                            if (Keyboard.current.uKey.wasPressedThisFrame) { targetPosition += cam.transform.forward * MoveSpeed; }
-                            if (Keyboard.current.jKey.wasPressedThisFrame) { targetPosition -= cam.transform.forward * MoveSpeed; }
-                            if (Keyboard.current.kKey.wasPressedThisFrame) { targetPosition += cam.transform.right * MoveSpeed; }
-                            if (Keyboard.current.hKey.wasPressedThisFrame) { targetPosition -= cam.transform.right * MoveSpeed; }
-                            if (Keyboard.current.iKey.wasPressedThisFrame) { targetPosition += cam.transform.up * MoveSpeed; }
-                            if (Keyboard.current.yKey.wasPressedThisFrame) { targetPosition -= cam.transform.up * MoveSpeed; }
+                            if (Keyboard.current.uKey.isPressed) { targetPosition += cam.transform.forward * MoveSpeed; }
+                            if (Keyboard.current.jKey.isPressed) { targetPosition -= cam.transform.forward * MoveSpeed; }
+                            if (Keyboard.current.kKey.isPressed) { targetPosition += cam.transform.right * MoveSpeed; }
+                            if (Keyboard.current.hKey.isPressed) { targetPosition -= cam.transform.right * MoveSpeed; }
+                            if (Keyboard.current.iKey.isPressed) { targetPosition += cam.transform.up * MoveSpeed; }
+                            if (Keyboard.current.yKey.isPressed) { targetPosition -= cam.transform.up * MoveSpeed; }
                             #endregion
                             cam.transform.position = Vector3.Lerp(cam.transform.position, targetPosition, lerpingSpeed * Time.deltaTime);
                             if (CopyRottation)
@@ -170,7 +170,7 @@ namespace RecordingCamera
                                 SwitchCamState();
                             }
                         }
-                        if (Keyboard.current.homeKey.wasPressedThisFrame)
+                        if (Keyboard.current.homeKey.isPressed)
                         {
                             hide = !hide;
                             me.playerHudUIContainer.GetComponent<RectTransform>().localPosition = Hide();
